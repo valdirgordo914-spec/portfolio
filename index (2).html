@@ -1,0 +1,1023 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>valdir_gordoo — Edição de Vídeo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #0a0918;
+    --bg-soft: #100e24;
+    --surface: #16142f;
+    --surface-2: #1c1a3a;
+    --line: #2a2650;
+    --violet: #8b6cff;
+    --blue: #4f8cff;
+    --text: #f1eefc;
+    --muted: #9791bd;
+  }
+
+  *{ box-sizing: border-box; }
+  html{ scroll-behavior: smooth; }
+  body{
+    margin:0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    line-height: 1.5;
+    overflow-x: hidden;
+  }
+  h1,h2,h3, .wordmark{
+    font-family: 'Sora', sans-serif;
+    margin: 0;
+  }
+  a{ color: inherit; text-decoration: none; }
+  img{ max-width:100%; display:block; }
+  .wrap{
+    max-width: 1120px;
+    margin: 0 auto;
+    padding: 0 28px;
+  }
+
+  /* background texture */
+  body::before{
+    content:"";
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    background:
+      radial-gradient(600px 400px at 12% 8%, rgba(139,108,255,0.10), transparent 60%),
+      radial-gradient(700px 500px at 92% 18%, rgba(79,140,255,0.08), transparent 60%);
+    pointer-events: none;
+  }
+  .bg-blobs{
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    overflow: hidden;
+    pointer-events: none;
+  }
+  .blob{
+    position: absolute;
+    width: 520px;
+    height: 520px;
+    border-radius: 50%;
+    filter: blur(100px);
+    opacity: .3;
+  }
+  .blob-a{
+    background: var(--violet);
+    top: -140px;
+    left: -120px;
+    animation: floatA 24s ease-in-out infinite;
+  }
+  .blob-b{
+    background: var(--blue);
+    bottom: -160px;
+    right: -100px;
+    animation: floatB 28s ease-in-out infinite;
+  }
+  @keyframes floatA{
+    0%, 100%{ transform: translate(0,0) scale(1); }
+    50%{ transform: translate(90px, 70px) scale(1.15); }
+  }
+  @keyframes floatB{
+    0%, 100%{ transform: translate(0,0) scale(1); }
+    50%{ transform: translate(-70px, -90px) scale(1.1); }
+  }
+  @media (prefers-reduced-motion: reduce){
+    .blob{ animation: none; }
+  }
+
+  /* NAV */
+  header{
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: rgba(10,9,24,0.78);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--line);
+  }
+  nav.wrap{
+    display:flex;
+    align-items:center;
+    justify-content: space-between;
+    height: 76px;
+  }
+  .nav-actions{
+    display:flex;
+    align-items:center;
+    gap: 14px;
+  }
+  .wordmark{
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+  .nav-links{
+    display:flex;
+    gap: 36px;
+    font-size: 15px;
+    font-weight: 500;
+  }
+  .nav-links a{
+    color: var(--muted);
+    position: relative;
+    padding: 4px 0;
+    transition: color .2s ease;
+  }
+  .nav-links a:hover{ color: var(--text); }
+  .nav-links a::after{
+    content:"";
+    position:absolute;
+    left:0; right:100%;
+    bottom:-2px;
+    height: 2px;
+    background: linear-gradient(90deg, var(--violet), var(--blue));
+    transition: right .25s ease;
+  }
+  .nav-links a:hover::after{ right: 0; }
+  .nav-cta{
+    background: linear-gradient(120deg, var(--violet), var(--blue));
+    color: #fff;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 14px;
+    display: inline-block;
+    transition: transform .2s ease, box-shadow .2s ease;
+  }
+  .nav-cta:hover{ transform: scale(1.06); box-shadow: 0 10px 24px rgba(139,108,255,0.35); }
+  .lang-toggle{
+    display:flex;
+    align-items:center;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    overflow: hidden;
+    font-size: 13px;
+    font-weight: 600;
+  }
+  .lang-toggle button{
+    background: none;
+    border: none;
+    color: var(--muted);
+    padding: 8px 12px;
+    cursor: pointer;
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    font-size: 13px;
+    transition: color .2s ease, background .2s ease;
+  }
+  .lang-toggle button.active{
+    color: #fff;
+    background: linear-gradient(120deg, var(--violet), var(--blue));
+  }
+  .menu-btn{ display:none; background:none; border:none; color:var(--text); font-size: 26px; cursor:pointer; }
+
+  /* HERO */
+  .hero{
+    position: relative;
+    z-index: 1;
+    padding: 120px 0 90px;
+  }
+  .hero .eyebrow-none{ height: 4px; width: 64px; background: linear-gradient(90deg, var(--violet), var(--blue)); border-radius: 4px; margin-bottom: 28px; }
+  .hero h1{
+    font-size: clamp(48px, 9vw, 96px);
+    font-weight: 800;
+    line-height: 1.02;
+    letter-spacing: -0.03em;
+    max-width: 780px;
+  }
+  .hero-name .letter{
+    display: inline-block;
+    transition: transform .25s ease, color .25s ease, text-shadow .25s ease;
+  }
+  .hero-name .letter:hover{
+    transform: translateY(-10px) scale(1.12);
+    color: var(--violet);
+    text-shadow: 0 8px 30px rgba(139,108,255,0.5);
+  }
+  .hero-name .letter:nth-child(even):hover{
+    color: var(--blue);
+    text-shadow: 0 8px 30px rgba(79,140,255,0.5);
+  }
+
+  .hero p{
+    margin-top: 26px;
+    max-width: 520px;
+    color: var(--muted);
+    font-size: 18px;
+  }
+  .hero-actions{
+    margin-top: 40px;
+    display:flex;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+  .btn-primary{
+    background: linear-gradient(120deg, var(--violet), var(--blue));
+    color:#fff;
+    padding: 15px 28px;
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: 15px;
+    display: inline-block;
+    transition: transform .25s ease, box-shadow .25s ease;
+  }
+  .btn-primary:hover{ transform: scale(1.06) translateY(-2px); box-shadow: 0 14px 32px rgba(139,108,255,0.4); }
+  .btn-ghost{
+    border: 1px solid var(--line);
+    color: var(--text);
+    padding: 15px 28px;
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: 15px;
+    display: inline-block;
+    transition: border-color .2s ease, background .2s ease, transform .25s ease;
+  }
+  .btn-ghost:hover{ border-color: var(--violet); background: rgba(139,108,255,0.08); transform: scale(1.05); }
+
+  /* MARQUEE */
+  .clients{
+    position: relative;
+    z-index: 1;
+    padding: 30px 0 60px;
+    border-top: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+  }
+  .clients p{
+    text-align:center;
+    color: var(--muted);
+    font-size: 14px;
+    margin-bottom: 26px;
+  }
+  .clients-carousel{
+    position: relative;
+  }
+  .marquee-track{
+    display:flex;
+    width: max-content;
+    gap: 64px;
+  }
+  .marquee-mask{
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+    -webkit-mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+  }
+  .marquee-mask::-webkit-scrollbar{ display: none; }
+  .carousel-arrow{
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 3;
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: transform .2s ease, border-color .2s ease, background .2s ease;
+  }
+  .carousel-arrow svg{ width: 18px; height: 18px; }
+  .carousel-arrow:hover{ transform: translateY(-50%) scale(1.12); border-color: var(--violet); background: rgba(139,108,255,0.12); }
+  .carousel-arrow.prev{ left: -8px; }
+  .carousel-arrow.next{ right: -8px; }
+  @media (max-width: 640px){
+    .carousel-arrow{ width: 34px; height: 34px; }
+    .carousel-arrow.prev{ left: 2px; }
+    .carousel-arrow.next{ right: 2px; }
+  }
+  .client-chip{
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-family: 'Sora', sans-serif;
+    font-size: 17px;
+    font-weight: 600;
+    color: var(--muted);
+    white-space: nowrap;
+    transition: color .2s ease;
+  }
+  .client-chip:hover{ color: var(--text); }
+  .client-chip img{
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+    background: var(--surface-2);
+    border: 1px solid var(--line);
+    transition: transform .25s ease, border-color .25s ease;
+  }
+  .client-chip:hover img{ transform: scale(1.18); border-color: var(--violet); }
+  .client-chip .subs{
+    display: block;
+    font-family: 'Inter', sans-serif;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--muted);
+    opacity: .75;
+  }
+
+  /* SECTIONS */
+  section{
+    position: relative;
+    z-index: 1;
+    padding: 100px 0;
+  }
+  .section-head{
+    display:flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    margin-bottom: 44px;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+  .section-head h2{
+    font-size: clamp(28px, 4vw, 40px);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+  .section-head span{
+    color: var(--muted);
+    font-size: 15px;
+    max-width: 360px;
+  }
+
+  .grid-long{
+    display:grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 24px;
+  }
+  .grid-short{
+    display:grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+    margin-top: 70px;
+  }
+
+  .card{
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    overflow: hidden;
+    transition: transform .25s ease, border-color .25s ease;
+  }
+  .card:hover{ transform: translateY(-4px); border-color: var(--violet); }
+  .thumb{
+    position: relative;
+    aspect-ratio: 16/9;
+    background: var(--surface-2);
+    overflow:hidden;
+  }
+  .card.short .thumb{ aspect-ratio: 9/16; }
+  .thumb img{ width:100%; height:100%; object-fit: cover; transition: transform .4s ease; }
+  .card:hover .thumb img{ transform: scale(1.08); }
+  .play{
+    position:absolute; inset:0;
+    display:flex; align-items:center; justify-content:center;
+    background: rgba(10,9,24,0.25);
+    opacity: 0;
+    transition: opacity .2s ease;
+  }
+  .card:hover .play{ opacity: 1; }
+  .play span{
+    width: 52px; height: 52px;
+    border-radius: 50%;
+    background: rgba(241,238,252,0.95);
+    display:flex; align-items:center; justify-content:center;
+  }
+  .play svg{ width: 18px; height:18px; fill: #100e24; margin-left: 3px; }
+  .card-body{ padding: 18px 20px 20px; }
+  .card-body .client{
+    font-size: 13px;
+    color: var(--blue);
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+  .card-body h3{
+    font-size: 17px;
+    font-weight: 600;
+    line-height: 1.35;
+  }
+  .card.short .card-body h3{ font-size: 15px; }
+  .note{
+    font-size: 13px;
+    color: var(--muted);
+    margin-top: 8px;
+  }
+
+  /* MOTION FEATURE */
+  .motion-feature{
+    display:grid;
+    grid-template-columns: 1.1fr 0.9fr;
+    gap: 40px;
+    align-items:center;
+    background: linear-gradient(135deg, var(--surface), var(--surface-2));
+    border: 1px solid var(--line);
+    border-radius: 20px;
+    padding: 8px;
+    overflow: hidden;
+  }
+  .motion-feature .thumb{ aspect-ratio: 16/10; border-radius: 14px; margin: 0; }
+  .motion-copy{ padding: 20px 30px 20px 8px; }
+  .motion-copy .client{ color: var(--violet); font-weight:600; font-size: 14px; margin-bottom:10px; }
+  .motion-copy h3{ font-size: 26px; font-weight: 700; margin-bottom: 14px; }
+  .motion-copy p{ color: var(--muted); font-size: 15px; margin-bottom: 22px; }
+
+  /* CONTACT */
+  /* DEPOIMENTOS */
+  .testimonials-grid{
+    display:grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+  }
+  .testimonial-card{
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 26px 22px;
+    transition: transform .25s ease, border-color .25s ease;
+  }
+  .testimonial-card:hover{ transform: translateY(-4px); border-color: var(--violet); }
+  .testimonial-quote{
+    font-size: 16px;
+    font-weight: 600;
+    line-height: 1.45;
+    margin-bottom: 20px;
+    min-height: 72px;
+  }
+  .testimonial-author{
+    display:flex;
+    align-items:center;
+    gap: 10px;
+  }
+  .testimonial-author img{
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 1px solid var(--line);
+  }
+  .testimonial-author span{
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--muted);
+  }
+  @media (max-width: 860px){
+    .testimonials-grid{ grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (max-width: 500px){
+    .testimonials-grid{ grid-template-columns: 1fr; }
+  }
+
+  .contact{
+    text-align:center;
+  }
+  .contact h2{
+    font-size: clamp(32px, 6vw, 56px);
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    max-width: 720px;
+    margin: 0 auto 20px;
+  }
+  .contact p{ color: var(--muted); font-size: 17px; margin-bottom: 44px; }
+  .contact-links{
+    display:flex;
+    justify-content:center;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+  .contact-links a, .contact-links button{
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border: 1px solid var(--line);
+    padding: 15px 26px;
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: 15px;
+    font-family: 'Inter', sans-serif;
+    background: none;
+    color: var(--text);
+    cursor: pointer;
+    transition: border-color .2s ease, background .2s ease, transform .2s ease;
+  }
+  .contact-links a:hover, .contact-links button:hover{ border-color: var(--violet); background: rgba(139,108,255,0.08); transform: translateY(-2px) scale(1.04); }
+  .contact-links svg{ width: 20px; height: 20px; flex-shrink: 0; }
+  .foot-links a, .foot-links button{ display:inline-flex; align-items:center; gap:6px; background:none; border:none; padding:0; color: var(--muted); font: inherit; font-size: 13px; cursor: pointer; }
+  .foot-links svg{ width: 14px; height: 14px; }
+
+  footer{
+    position: relative; z-index:1;
+    border-top: 1px solid var(--line);
+    padding: 28px 0;
+  }
+  footer .wrap{
+    display:flex;
+    justify-content: space-between;
+    align-items:center;
+    color: var(--muted);
+    font-size: 13px;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  footer .foot-links{ display:flex; gap: 20px; }
+  footer .foot-links a:hover, footer .foot-links button:hover{ color: var(--text); }
+
+  @media (max-width: 860px){
+    .nav-links{
+      position: fixed;
+      top: 76px; left:0; right:0;
+      background: var(--bg-soft);
+      border-bottom: 1px solid var(--line);
+      flex-direction: column;
+      padding: 24px 28px;
+      gap: 20px;
+      transform: translateY(-130%);
+      transition: transform .25s ease;
+    }
+    .nav-links.open{ transform: translateY(0); }
+    .menu-btn{ display:block; }
+    .nav-cta{ display:none; }
+    .grid-long{ grid-template-columns: 1fr; }
+    .grid-short{ grid-template-columns: repeat(2, 1fr); }
+    .motion-feature{ grid-template-columns: 1fr; padding: 16px; }
+    .motion-copy{ padding: 4px 8px 8px; }
+  }
+</style>
+</head>
+<body>
+<div class="bg-blobs" aria-hidden="true">
+  <div class="blob blob-a"></div>
+  <div class="blob blob-b"></div>
+</div>
+
+<header>
+  <nav class="wrap">
+    <a href="#top" class="wordmark">valdir_gordoo</a>
+    <div class="nav-links" id="navLinks">
+      <a href="#trabalhos" data-i18n="nav-work">Trabalhos</a>
+      <a href="#depoimentos" data-i18n="nav-testimonials">Depoimentos</a>
+      <a href="#contato" data-i18n="nav-contact">Contato</a>
+    </div>
+    <div class="nav-actions">
+      <a href="#contato" class="nav-cta" data-i18n="nav-cta">Vamos conversar</a>
+      <div class="lang-toggle">
+        <button type="button" id="langPt" onclick="setLang('pt')">PT</button>
+        <button type="button" id="langEn" onclick="setLang('en')">EN</button>
+      </div>
+      <button class="menu-btn" id="menuBtn" aria-label="Abrir menu">☰</button>
+    </div>
+  </nav>
+</header>
+
+<main id="top">
+
+  <section class="hero">
+    <div class="wrap">
+      <div class="eyebrow-none"></div>
+      <h1 class="hero-name" id="heroName">valdir_gordoo</h1>
+      <p data-i18n="hero-tagline">Edição de vídeo e motion design para criadores de conteúdo — gameplay, reação, cortes e animações que seguram a atenção até o fim.</p>
+      <div class="hero-actions">
+        <a href="#trabalhos" class="btn-primary" data-i18n="hero-btn-work">Ver trabalhos</a>
+        <a href="#contato" class="btn-ghost" data-i18n="hero-btn-talk">Falar comigo</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="clients">
+    <div class="wrap">
+      <p data-i18n="clients-caption">Já editei para</p>
+    </div>
+    <div class="clients-carousel">
+      <button type="button" class="carousel-arrow prev" aria-label="Voltar" onclick="scrollClients(-1)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+      </button>
+      <div class="marquee-mask" id="marqueeMask">
+      <div class="marquee-track" id="marqueeTrack">
+        <a class="client-chip" href="https://www.youtube.com/@Spinisplend" target="_blank" rel="noopener">
+          <img src="https://unavatar.io/youtube/Spinisplend" alt="Logo Spinisplend" loading="lazy">
+          <span>Spinisplend<span class="subs" data-channel="Spinisplend"></span></span>
+        </a>
+        <a class="client-chip" href="https://www.youtube.com/@darsena832" target="_blank" rel="noopener">
+          <img src="https://unavatar.io/youtube/darsena832" alt="Logo darsena" loading="lazy">
+          <span>darsena<span class="subs" data-channel="darsena832"></span></span>
+        </a>
+        <a class="client-chip" href="https://www.youtube.com/@llimazxl" target="_blank" rel="noopener">
+          <img src="https://unavatar.io/youtube/llimazxl" alt="Logo llimazxl" loading="lazy">
+          <span>llimazxl<span class="subs" data-channel="llimazxl"></span></span>
+        </a>
+        <a class="client-chip" href="https://www.youtube.com/@Userpote" target="_blank" rel="noopener">
+          <img src="https://unavatar.io/youtube/Userpote" alt="Logo Userpote" loading="lazy">
+          <span>Userpote<span class="subs" data-channel="Userpote"></span></span>
+        </a>
+        <a class="client-chip" href="https://www.youtube.com/@PeachiPops" target="_blank" rel="noopener">
+          <img src="https://unavatar.io/youtube/PeachiPops" alt="Logo PeachiPops" loading="lazy">
+          <span>PeachiPops<span class="subs" data-channel="PeachiPops"></span></span>
+        </a>
+        <a class="client-chip" href="https://www.youtube.com/@manoneseeeeeeeee" target="_blank" rel="noopener">
+          <img src="https://unavatar.io/youtube/manoneseeeeeeeee" alt="Logo manonese" loading="lazy">
+          <span>manonese<span class="subs" data-channel="manoneseeeeeeeee"></span></span>
+        </a>
+        <a class="client-chip" href="https://www.youtube.com/@Teuzz" target="_blank" rel="noopener">
+          <img src="https://unavatar.io/youtube/Teuzz" alt="Logo Teuzz" loading="lazy">
+          <span>Teuzz<span class="subs" data-channel="Teuzz"></span></span>
+        </a>
+      </div>
+      </div>
+      <button type="button" class="carousel-arrow next" aria-label="Avançar" onclick="scrollClients(1)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+      </button>
+    </div>
+  </section>
+
+  <section id="trabalhos">
+    <div class="wrap">
+
+      <div class="section-head">
+        <h2 data-i18n="long-title">Vídeos Longos</h2>
+        <span data-i18n="long-desc">Edição completa de vídeos de YouTube — ritmo, cortes e narrativa do início ao fim.</span>
+      </div>
+
+      <div class="grid-long">
+
+        <a class="card" href="https://www.youtube.com/watch?v=Cq-bz9iCEz0" target="_blank" rel="noopener">
+          <div class="thumb">
+            <img src="https://img.youtube.com/vi/Cq-bz9iCEz0/hqdefault.jpg" alt="Vídeo editado para darsena">
+            <div class="play"><span><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></span></div>
+          </div>
+          <div class="card-body">
+            <div class="client">darsena</div>
+            <h3 data-i18n="card-fulledit">Edição completa do vídeo</h3>
+          </div>
+        </a>
+
+        <a class="card" href="https://www.youtube.com/watch?v=yYFDnI_mgmA" target="_blank" rel="noopener">
+          <div class="thumb">
+            <img src="https://img.youtube.com/vi/yYFDnI_mgmA/hqdefault.jpg" alt="Vídeo editado para darsena">
+            <div class="play"><span><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></span></div>
+          </div>
+          <div class="card-body">
+            <div class="client">darsena</div>
+            <h3 data-i18n="card-fulledit">Edição completa do vídeo</h3>
+          </div>
+        </a>
+
+        <a class="card" href="https://www.youtube.com/watch?v=44qlTew6sDk" target="_blank" rel="noopener">
+          <div class="thumb">
+            <img src="https://img.youtube.com/vi/44qlTew6sDk/hqdefault.jpg" alt="Vídeo editado para llimazxl">
+            <div class="play"><span><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></span></div>
+          </div>
+          <div class="card-body">
+            <div class="client">llimazxl</div>
+            <h3 data-i18n="card-fulledit">Edição completa do vídeo</h3>
+          </div>
+        </a>
+
+        <a class="card" href="https://www.youtube.com/watch?v=E6o04-405OI" target="_blank" rel="noopener">
+          <div class="thumb">
+            <img src="https://img.youtube.com/vi/E6o04-405OI/hqdefault.jpg" alt="Vídeo editado para Userpote">
+            <div class="play"><span><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></span></div>
+          </div>
+          <div class="card-body">
+            <div class="client">Userpote</div>
+            <h3 data-i18n="card-fulledit">Edição completa do vídeo</h3>
+          </div>
+        </a>
+
+        <a class="card" href="https://www.youtube.com/watch?v=-BIxU3kS6L8" target="_blank" rel="noopener">
+          <div class="thumb">
+            <img src="https://img.youtube.com/vi/-BIxU3kS6L8/hqdefault.jpg" alt="Vídeo editado para Userpote">
+            <div class="play"><span><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></span></div>
+          </div>
+          <div class="card-body">
+            <div class="client">Userpote</div>
+            <h3 data-i18n="card-fulledit">Edição completa do vídeo</h3>
+          </div>
+        </a>
+
+        <a class="card" href="https://www.youtube.com/watch?v=DgXtjFi753U" target="_blank" rel="noopener">
+          <div class="thumb">
+            <img src="https://img.youtube.com/vi/DgXtjFi753U/hqdefault.jpg" alt="Vídeo editado para manonese">
+            <div class="play"><span><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></span></div>
+          </div>
+          <div class="card-body">
+            <div class="client">manonese</div>
+            <h3 data-i18n="card-fulledit">Edição completa do vídeo</h3>
+          </div>
+        </a>
+
+        <a class="card" href="https://www.youtube.com/watch?v=NhnITURrsRQ&t=135s" target="_blank" rel="noopener">
+          <div class="thumb">
+            <img src="https://img.youtube.com/vi/NhnITURrsRQ/hqdefault.jpg" alt="Vídeo editado para manonese">
+            <div class="play"><span><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></span></div>
+          </div>
+          <div class="card-body">
+            <div class="client">manonese</div>
+            <h3 data-i18n="card-manonese-title">Edição a partir dos 2:15</h3>
+            <div class="note" data-i18n="card-manonese-note">Edição começa no minuto 2:15 do vídeo original.</div>
+          </div>
+        </a>
+
+        <a class="card" href="https://youtu.be/FtYEqtm9WgU" target="_blank" rel="noopener">
+          <div class="thumb">
+            <img src="https://img.youtube.com/vi/FtYEqtm9WgU/hqdefault.jpg" alt="Vídeo teste editado para Teuzz">
+            <div class="play"><span><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></span></div>
+          </div>
+          <div class="card-body">
+            <div class="client">Teuzz</div>
+            <h3 data-i18n="card-teuzz-title">Vídeo teste de edição</h3>
+          </div>
+        </a>
+
+      </div>
+
+      <div class="section-head" style="margin-top: 80px;">
+        <h2 data-i18n="short-title">Vídeos Curtos</h2>
+        <span data-i18n="short-desc">Cortes rápidos e verticais, feitos para reter em poucos segundos.</span>
+      </div>
+
+      <div class="grid-short">
+        <a class="card short" href="https://www.youtube.com/shorts/yDNl1XSN4xs" target="_blank" rel="noopener">
+          <div class="thumb">
+            <img src="https://img.youtube.com/vi/yDNl1XSN4xs/hqdefault.jpg" alt="Short editado para Spinisplend">
+            <div class="play"><span><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></span></div>
+          </div>
+          <div class="card-body">
+            <div class="client">Spinisplend</div>
+            <h3 data-i18n="card-short">Short</h3>
+          </div>
+        </a>
+      </div>
+
+      <div class="section-head" style="margin-top: 90px;">
+        <h2 data-i18n="motion-title">Motion &amp; Animação</h2>
+        <span data-i18n="motion-desc">Peças animadas sob medida, fora do fluxo de corte tradicional.</span>
+      </div>
+
+      <a class="motion-feature" href="https://youtu.be/waQXIogvWSc" target="_blank" rel="noopener" style="display:grid; text-decoration:none;">
+        <div class="thumb">
+          <img src="https://img.youtube.com/vi/waQXIogvWSc/hqdefault.jpg" alt="Animação de intro para PeachiPops">
+          <div class="play"><span><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></span></div>
+        </div>
+        <div class="motion-copy">
+          <div class="client">PeachiPops</div>
+          <h3 data-i18n="motion-card-title">Animação de intro de live</h3>
+          <p data-i18n="motion-card-desc">Peça de abertura animada, criada do zero para dar identidade visual à live.</p>
+          <span class="btn-ghost" style="display:inline-block;" data-i18n="motion-watch">Assistir</span>
+        </div>
+      </a>
+
+    </div>
+  </section>
+
+  <section id="depoimentos">
+    <div class="wrap">
+      <div class="section-head">
+        <h2 data-i18n="testi-title">O que dizem sobre o trabalho</h2>
+        <span data-i18n="testi-desc">Reações reais de quem recebeu o vídeo pronto.</span>
+      </div>
+      <div class="testimonials-grid">
+
+        <div class="testimonial-card">
+          <div class="testimonial-quote" data-i18n="testi-peachi">"UAU! Tá incrível, ficou maravilhoso!"</div>
+          <div class="testimonial-author">
+            <img src="https://unavatar.io/youtube/PeachiPops" alt="Logo PeachiPops" loading="lazy">
+            <span>PeachiPops</span>
+          </div>
+        </div>
+
+        <div class="testimonial-card">
+          <div class="testimonial-quote" data-i18n="testi-darsena">"Mano, tu cozinhou! Tá muito bom mesmo."</div>
+          <div class="testimonial-author">
+            <img src="https://unavatar.io/youtube/darsena832" alt="Logo darsena" loading="lazy">
+            <span>darsena</span>
+          </div>
+        </div>
+
+        <div class="testimonial-card">
+          <div class="testimonial-quote" data-i18n="testi-pote">"Cara, tá perfeito, irmão. Tá lindo, eu amei!"</div>
+          <div class="testimonial-author">
+            <img src="https://unavatar.io/youtube/Userpote" alt="Logo Userpote" loading="lazy">
+            <span>Userpote</span>
+          </div>
+        </div>
+
+        <div class="testimonial-card">
+          <div class="testimonial-quote" data-i18n="testi-lima">"C*****! AMASSA MUITO."</div>
+          <div class="testimonial-author">
+            <img src="https://unavatar.io/youtube/llimazxl" alt="Logo llimazxl" loading="lazy">
+            <span>llimazxl</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <section id="contato" class="contact">
+    <div class="wrap">
+      <h2 data-i18n="contact-title">Tem um vídeo pra editar? Bora conversar.</h2>
+      <p data-i18n="contact-desc">Respondo rápido por WhatsApp ou e-mail.</p>
+      <div class="contact-links">
+        <a href="mailto:valdirgordo914@gmail.com">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 6.5A1.5 1.5 0 0 1 4.5 5h15A1.5 1.5 0 0 1 21 6.5v11A1.5 1.5 0 0 1 19.5 19h-15A1.5 1.5 0 0 1 3 17.5v-11Z"/><path d="m4 6.5 8 6.5 8-6.5"/></svg>
+          valdirgordo914@gmail.com
+        </a>
+        <a href="https://wa.me/5511955553234" target="_blank" rel="noopener">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.39 1.26 4.81L2 22l5.42-1.36a9.9 9.9 0 0 0 4.62 1.15h.01c5.46 0 9.9-4.45 9.9-9.91C21.96 6.45 17.5 2 12.04 2Zm5.8 14.03c-.24.68-1.4 1.3-1.93 1.37-.5.07-1.02.32-3.42-.72-2.86-1.25-4.7-4.16-4.85-4.35-.14-.19-1.16-1.54-1.16-2.94 0-1.4.73-2.09.99-2.38.26-.28.57-.35.76-.35h.55c.18 0 .42-.03.65.5.24.55.8 1.9.87 2.04.07.14.11.3.02.48-.09.19-.14.3-.28.46-.14.16-.29.36-.42.48-.14.13-.28.28-.12.55.16.28.71 1.17 1.53 1.9 1.05.94 1.94 1.24 2.21 1.38.28.14.44.12.6-.07.16-.19.68-.79.87-1.06.18-.28.36-.23.6-.14.24.09 1.53.72 1.79.85.26.14.44.2.5.31.07.12.07.68-.17 1.36Z"/></svg>
+          WhatsApp
+        </a>
+        <a href="https://x.com/valdir_gordoo" target="_blank" rel="noopener">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.24 3h3.03l-6.62 7.56L22.5 21h-6.1l-4.78-6.24L6.14 21H3.1l7.08-8.09L2.5 3h6.26l4.32 5.7L18.24 3Zm-1.07 16.17h1.68L7.94 4.74H6.13l11.04 14.43Z"/></svg>
+          @valdir_gordoo
+        </a>
+        <button type="button" class="copy-discord" onclick="copyDiscord(this)">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.32 4.37a19.8 19.8 0 0 0-4.9-1.52.07.07 0 0 0-.08.04c-.21.38-.45.87-.61 1.26a18.3 18.3 0 0 0-5.48 0 12.6 12.6 0 0 0-.62-1.26.08.08 0 0 0-.08-.04 19.7 19.7 0 0 0-4.9 1.52.07.07 0 0 0-.03.03C.98 8.6.31 12.7.65 16.75a.08.08 0 0 0 .03.06 19.9 19.9 0 0 0 5.99 3.03.08.08 0 0 0 .09-.03c.46-.63.87-1.3 1.23-2a.08.08 0 0 0-.04-.11 13.1 13.1 0 0 1-1.87-.9.08.08 0 0 1 0-.13c.13-.09.25-.19.37-.28a.08.08 0 0 1 .08-.01c3.93 1.79 8.18 1.79 12.06 0a.08.08 0 0 1 .08.01c.12.1.24.19.37.29a.08.08 0 0 1 0 .13c-.6.35-1.22.65-1.87.9a.08.08 0 0 0-.04.11c.36.7.78 1.37 1.23 2a.08.08 0 0 0 .09.03 19.8 19.8 0 0 0 6-3.03.08.08 0 0 0 .03-.06c.4-4.7-.67-8.76-2.83-12.35a.06.06 0 0 0-.03-.03ZM8.68 14.3c-1.18 0-2.15-1.08-2.15-2.42 0-1.33.95-2.42 2.15-2.42 1.21 0 2.17 1.1 2.15 2.42 0 1.34-.94 2.42-2.15 2.42Zm6.65 0c-1.18 0-2.15-1.08-2.15-2.42 0-1.33.95-2.42 2.15-2.42 1.21 0 2.17 1.1 2.15 2.42 0 1.34-.93 2.42-2.15 2.42Z"/></svg>
+          <span data-default="valdir_gordoo">valdir_gordoo</span>
+        </button>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    <span>© 2026 valdir_gordoo</span>
+    <div class="foot-links">
+      <a href="mailto:valdirgordo914@gmail.com">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 6.5A1.5 1.5 0 0 1 4.5 5h15A1.5 1.5 0 0 1 21 6.5v11A1.5 1.5 0 0 1 19.5 19h-15A1.5 1.5 0 0 1 3 17.5v-11Z"/><path d="m4 6.5 8 6.5 8-6.5"/></svg>
+        <span data-i18n="footer-email">E-mail</span>
+      </a>
+      <a href="https://wa.me/5511955553234" target="_blank" rel="noopener">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.39 1.26 4.81L2 22l5.42-1.36a9.9 9.9 0 0 0 4.62 1.15h.01c5.46 0 9.9-4.45 9.9-9.91C21.96 6.45 17.5 2 12.04 2Zm5.8 14.03c-.24.68-1.4 1.3-1.93 1.37-.5.07-1.02.32-3.42-.72-2.86-1.25-4.7-4.16-4.85-4.35-.14-.19-1.16-1.54-1.16-2.94 0-1.4.73-2.09.99-2.38.26-.28.57-.35.76-.35h.55c.18 0 .42-.03.65.5.24.55.8 1.9.87 2.04.07.14.11.3.02.48-.09.19-.14.3-.28.46-.14.16-.29.36-.42.48-.14.13-.28.28-.12.55.16.28.71 1.17 1.53 1.9 1.05.94 1.94 1.24 2.21 1.38.28.14.44.12.6-.07.16-.19.68-.79.87-1.06.18-.28.36-.23.6-.14.24.09 1.53.72 1.79.85.26.14.44.2.5.31.07.12.07.68-.17 1.36Z"/></svg>
+        WhatsApp
+      </a>
+      <a href="https://x.com/valdir_gordoo" target="_blank" rel="noopener">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.24 3h3.03l-6.62 7.56L22.5 21h-6.1l-4.78-6.24L6.14 21H3.1l7.08-8.09L2.5 3h6.26l4.32 5.7L18.24 3Zm-1.07 16.17h1.68L7.94 4.74H6.13l11.04 14.43Z"/></svg>
+        Twitter/X
+      </a>
+      <button type="button" class="copy-discord" onclick="copyDiscord(this)">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.32 4.37a19.8 19.8 0 0 0-4.9-1.52.07.07 0 0 0-.08.04c-.21.38-.45.87-.61 1.26a18.3 18.3 0 0 0-5.48 0 12.6 12.6 0 0 0-.62-1.26.08.08 0 0 0-.08-.04 19.7 19.7 0 0 0-4.9 1.52.07.07 0 0 0-.03.03C.98 8.6.31 12.7.65 16.75a.08.08 0 0 0 .03.06 19.9 19.9 0 0 0 5.99 3.03.08.08 0 0 0 .09-.03c.46-.63.87-1.3 1.23-2a.08.08 0 0 0-.04-.11 13.1 13.1 0 0 1-1.87-.9.08.08 0 0 1 0-.13c.13-.09.25-.19.37-.28a.08.08 0 0 1 .08-.01c3.93 1.79 8.18 1.79 12.06 0a.08.08 0 0 1 .08.01c.12.1.24.19.37.29a.08.08 0 0 1 0 .13c-.6.35-1.22.65-1.87.9a.08.08 0 0 0-.04.11c.36.7.78 1.37 1.23 2a.08.08 0 0 0 .09.03 19.8 19.8 0 0 0 6-3.03.08.08 0 0 0 .03-.06c.4-4.7-.67-8.76-2.83-12.35a.06.06 0 0 0-.03-.03ZM8.68 14.3c-1.18 0-2.15-1.08-2.15-2.42 0-1.33.95-2.42 2.15-2.42 1.21 0 2.17 1.1 2.15 2.42 0 1.34-.94 2.42-2.15 2.42Zm6.65 0c-1.18 0-2.15-1.08-2.15-2.42 0-1.33.95-2.42 2.15-2.42 1.21 0 2.17 1.1 2.15 2.42 0 1.34-.93 2.42-2.15 2.42Z"/></svg>
+        <span data-default="valdir_gordoo">valdir_gordoo</span>
+      </button>
+    </div>
+  </div>
+</footer>
+
+<script>
+  const menuBtn = document.getElementById('menuBtn');
+  const navLinks = document.getElementById('navLinks');
+  menuBtn.addEventListener('click', () => {
+    navLinks.classList.toggle('open');
+  });
+  navLinks.querySelectorAll('a').forEach(a => {
+    a.addEventListener('click', () => navLinks.classList.remove('open'));
+  });
+
+  // ---------- Traduções (PT / EN) ----------
+  const I18N = {
+    'nav-work': { pt: 'Trabalhos', en: 'Work' },
+    'nav-testimonials': { pt: 'Depoimentos', en: 'Testimonials' },
+    'nav-contact': { pt: 'Contato', en: 'Contact' },
+    'nav-cta': { pt: 'Vamos conversar', en: "Let's talk" },
+    'hero-tagline': { pt: 'Edição de vídeo e motion design para criadores de conteúdo — gameplay, reação, cortes e animações que seguram a atenção até o fim.', en: 'Video editing and motion design for content creators — gameplay, reactions, cuts and animations that keep viewers watching until the end.' },
+    'hero-btn-work': { pt: 'Ver trabalhos', en: 'See my work' },
+    'hero-btn-talk': { pt: 'Falar comigo', en: 'Get in touch' },
+    'clients-caption': { pt: 'Já editei para', en: "I've edited for" },
+    'long-title': { pt: 'Vídeos Longos', en: 'Long-form videos' },
+    'long-desc': { pt: 'Edição completa de vídeos de YouTube — ritmo, cortes e narrativa do início ao fim.', en: 'Full YouTube video edits — pacing, cuts and storytelling from start to finish.' },
+    'card-fulledit': { pt: 'Edição completa do vídeo', en: 'Full video edit' },
+    'card-manonese-title': { pt: 'Edição a partir dos 2:15', en: 'Edit starting at 2:15' },
+    'card-manonese-note': { pt: 'Edição começa no minuto 2:15 do vídeo original.', en: 'My editing starts at minute 2:15 of the original video.' },
+    'card-teuzz-title': { pt: 'Vídeo teste de edição', en: 'Editing test video' },
+    'short-title': { pt: 'Vídeos Curtos', en: 'Short-form videos' },
+    'short-desc': { pt: 'Cortes rápidos e verticais, feitos para reter em poucos segundos.', en: 'Fast, vertical cuts built to hook viewers in seconds.' },
+    'card-short': { pt: 'Short', en: 'Short' },
+    'motion-title': { pt: 'Motion &amp; Animação', en: 'Motion &amp; Animation' },
+    'motion-desc': { pt: 'Peças animadas sob medida, fora do fluxo de corte tradicional.', en: 'Custom animated pieces, outside the usual editing flow.' },
+    'motion-card-title': { pt: 'Animação de intro de live', en: 'Live stream intro animation' },
+    'motion-card-desc': { pt: 'Peça de abertura animada, criada do zero para dar identidade visual à live.', en: 'Custom opening animation, built from scratch to give the stream its own visual identity.' },
+    'motion-watch': { pt: 'Assistir', en: 'Watch' },
+    'testi-title': { pt: 'O que dizem sobre o trabalho', en: 'What clients say' },
+    'testi-desc': { pt: 'Reações reais de quem recebeu o vídeo pronto.', en: 'Real reactions from people who received the finished video.' },
+    'testi-peachi': { pt: '"UAU! Tá incrível, ficou maravilhoso!"', en: '"WOW! This is amazing, it turned out incredible!"' },
+    'testi-darsena': { pt: '"Mano, tu cozinhou! Tá muito bom mesmo."', en: '"Dude, you nailed it! This is really good."' },
+    'testi-pote': { pt: '"Cara, tá perfeito, irmão. Tá lindo, eu amei!"', en: '"Man, it\'s perfect, bro. It looks amazing, I loved it!"' },
+    'testi-lima': { pt: '"C*****! AMASSA MUITO."', en: '"HOLY S***! ABSOLUTELY CRUSHES IT."' },
+    'contact-title': { pt: 'Tem um vídeo pra editar? Bora conversar.', en: 'Got a video to edit? Let\'s talk.' },
+    'contact-desc': { pt: 'Respondo rápido por WhatsApp ou e-mail.', en: 'I reply fast on WhatsApp or email.' },
+    'footer-email': { pt: 'E-mail', en: 'Email' }
+  };
+  const COPIED_LABEL = { pt: 'Copiado!', en: 'Copied!' };
+  const SUBS_WORD = { pt: 'inscritos', en: 'subscribers' };
+  const MENU_LABEL = { pt: 'Abrir menu', en: 'Open menu' };
+  const ARROW_PREV_LABEL = { pt: 'Voltar', en: 'Previous' };
+  const ARROW_NEXT_LABEL = { pt: 'Avançar', en: 'Next' };
+
+  let currentLang = localStorage.getItem('siteLang') || 'pt';
+
+  function renderSubs(){
+    document.querySelectorAll('.subs').forEach(el => {
+      const valor = INSCRITOS[el.dataset.channel];
+      el.textContent = valor ? valor + ' ' + SUBS_WORD[currentLang] : '';
+    });
+  }
+
+  window.setLang = function(lang){
+    currentLang = lang;
+    localStorage.setItem('siteLang', lang);
+    document.documentElement.lang = lang === 'en' ? 'en' : 'pt-BR';
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+      const entry = I18N[el.dataset.i18n];
+      if (entry) el.innerHTML = entry[lang];
+    });
+    document.getElementById('langPt').classList.toggle('active', lang === 'pt');
+    document.getElementById('langEn').classList.toggle('active', lang === 'en');
+    menuBtn.setAttribute('aria-label', MENU_LABEL[lang]);
+    document.querySelector('.carousel-arrow.prev').setAttribute('aria-label', ARROW_PREV_LABEL[lang]);
+    document.querySelector('.carousel-arrow.next').setAttribute('aria-label', ARROW_NEXT_LABEL[lang]);
+    renderSubs();
+  };
+
+  // copia o usuário do Discord ao clicar (Discord não tem link direto pra abrir DM por nome de usuário)
+  function copyDiscord(btn){
+    const span = btn.querySelector('span');
+    const original = span.dataset.default;
+    navigator.clipboard.writeText(original).then(() => {
+      span.textContent = COPIED_LABEL[currentLang];
+      setTimeout(() => { span.textContent = original; }, 1500);
+    });
+  }
+
+  // quebra o nome em letras pro efeito de hover individual
+  const heroName = document.getElementById('heroName');
+  heroName.innerHTML = heroName.textContent
+    .split('')
+    .map(ch => `<span class="letter">${ch === ' ' ? '&nbsp;' : ch}</span>`)
+    .join('');
+
+  // Quantidade de inscritos de cada canal.
+  // O YouTube não deixa pegar esse número automaticamente sem uma chave de API
+  // (e expor uma chave num site estático não é seguro), então atualize os
+  // valores aqui manualmente de vez em quando. Deixe "" para não mostrar nada.
+  const INSCRITOS = {
+    Spinisplend: "128 mil",
+    darsena832: "60",
+    llimazxl: "30",
+    Userpote: "76,4 mil",
+    PeachiPops: "2,04 mil",
+    manoneseeeeeeeee: "320",
+    Teuzz: "71,6 mil"
+  };
+
+  // duplica os itens do marquee pra o scroll ficar contínuo, sem repetir no HTML
+  const track = document.getElementById('marqueeTrack');
+  track.innerHTML += track.innerHTML;
+
+  setLang(currentLang);
+
+  // carrossel de canais: rola sozinho, mas pausa quando o usuário mexe e volta depois de um tempo
+  const mask = document.getElementById('marqueeMask');
+  let autoId = null;
+  let resumeTimer = null;
+
+  function autoTick(){
+    mask.scrollLeft += 0.6;
+    if (mask.scrollLeft >= mask.scrollWidth / 2){ mask.scrollLeft = 0; }
+    autoId = requestAnimationFrame(autoTick);
+  }
+  function startAuto(){ if (!autoId) autoId = requestAnimationFrame(autoTick); }
+  function stopAuto(){ if (autoId){ cancelAnimationFrame(autoId); autoId = null; } }
+  function pauseThenResume(delay){
+    stopAuto();
+    clearTimeout(resumeTimer);
+    resumeTimer = setTimeout(startAuto, delay);
+  }
+
+  window.scrollClients = function(dir){
+    pauseThenResume(4000);
+    mask.scrollBy({ left: dir * 320, behavior: 'smooth' });
+  };
+
+  mask.addEventListener('mouseenter', () => stopAuto());
+  mask.addEventListener('mouseleave', () => { clearTimeout(resumeTimer); startAuto(); });
+  mask.addEventListener('touchstart', () => stopAuto(), { passive: true });
+  mask.addEventListener('touchend', () => pauseThenResume(3000), { passive: true });
+
+  startAuto();
+</script>
+
+</body>
+</html>
